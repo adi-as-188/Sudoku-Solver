@@ -34,33 +34,119 @@ int add(struct Sudoku *sudoku, int i, int j, int val) {
     if (sudoku->grid[i][j]) return 0;
 
     // if the element is not in the potentials list, it cannot be added
-    if (sudoku->potentials[i][j][val] == 0) return 0;
+    if (sudoku->potentials[i][j][val - 1] == 0) return 0;
 
     int box = 3 * (i / 3) + (j / 3);
     // if the element is already present in the row, column or box, then it cannot be added
-    if (sudoku->rows[i][val] || sudoku->cols[j][val] || sudoku->boxes[box][val]) {
+    if (sudoku->rows[i][val - 1] || sudoku->cols[j][val - 1] || sudoku->boxes[box][val - 1]) {
         return 0;
     }
 
     sudoku->grid[i][j] = val;       // set the value
 
     // update the information
-    sudoku->rows[i][val] = 1;
-    sudoku->cols[j][val] = 1;
-    sudoku->boxes[box][val] = 1;
+    sudoku->rows[i][val - 1] = 1;
+    sudoku->cols[j][val - 1] = 1;
+    sudoku->boxes[box][val - 1] = 1;
 
     // update the potentials for other cells
     for (int k = 0; k < 9; k++) {
-        if (val != k) sudoku->potentials[i][j][k] = 0;
-        if (i != k) sudoku->potentials[k][j][val] = 0;
-        if (j != k) sudoku->potentials[i][k][val] = 0;
+        if (val - 1 != k) sudoku->potentials[i][j][k] = 0;
+        if (i != k) sudoku->potentials[k][j][val - 1] = 0;
+        if (j != k) sudoku->potentials[i][k][val - 1] = 0;
     }
     for (int a = 0; a < 3; a++) {
         int r = box / 3 + a;
         for (int b = 0; b < 3; b++) {
             int c = box % 3 + b;
             if (r == i && c == b) continue;
-            sudoku->potentials[r][c][val] = 0;
+            sudoku->potentials[r][c][val - 1] = 0;
+        }
+    }
+
+    return 1;
+}
+
+
+// if a cell can contain only a single element, places it and returns 0 if invalid
+int place(struct Sudoku *sudoku) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (sudoku->grid[i][j]) continue;
+
+            int potential = -1;
+            for (int k = 0; k < 9; k++) {
+                if (sudoku->potentials[i][j][k]) {
+                    if (potential == -1) potential = k;
+                    else {
+                        potential = -1;
+                        k = 9;
+                    }
+                }
+            }
+
+            if (potential == -1) continue;
+            if (!add(sudoku, i, j, potential + 1)) return 0;
+        }
+    }
+
+    return 1;
+}
+
+
+// if an element can be placed in only a single cell in a row/col/box, place it there
+int remaining(struct Sudoku *sudoku) {
+    for (int num = 0; num < 9; num++) {
+        for (int i = 0; i < 9; i++) {
+            if (sudoku->rows[i][num] == 0) {
+                int potential = -1;
+                for (int j = 0; j < 9; j++) {
+                    if (sudoku->potentials[i][j][num]) {
+                        if (potential == -1) potential = j;
+                        else {
+                            potential = -1;
+                            j = 9;
+                        }
+                    }
+                }
+
+                if (potential == -1) continue;
+                if (!add(sudoku, i, potential, num + 1)) return 0;
+            }
+            
+            if (sudoku->cols[i][num] == 0) {
+                int potential = -1;
+                for (int j = 0; j < 9; j++) {
+                    if (sudoku->potentials[j][i][num]) {
+                        if (potential == -1) potential = j;
+                        else {
+                            potential = -1;
+                            j = 9;
+                        }
+                    }
+                }
+
+                if (potential == -1) continue;
+                if (!add(sudoku, potential, i, num + 1)) return 0;
+            }
+
+            if (sudoku->boxes[i][num] == 0) {
+                int potential = -1;
+                for (int j = 0; j < 9; j++) {
+                    if (sudoku->potentials[3 * (i / 3) + j / 3][3 * (i % 3) + j % 3][num]) {
+                        if (potential == -1) potential = j;
+                        else {
+                            potential = -1;
+                            j = 9;
+                        }
+                    }
+                }
+
+                if (potential == -1) continue;
+                if (!add(sudoku, 3 * (i / 3) + potential / 3, 3 * (i % 3) + potential % 3, num + 1)) {
+                    return 0;
+                }
+            }
         }
     }
 
