@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+
 // data structure to hold a sudoku
 struct Sudoku {
     int grid[9][9];     // 9x9 sudoku grid
@@ -97,8 +101,10 @@ int place(struct Sudoku *sudoku) {
 
 // if an element can be placed in only a single cell in a row/col/box, place it there
 int remaining(struct Sudoku *sudoku) {
+    // check for each number
     for (int num = 0; num < 9; num++) {
         for (int i = 0; i < 9; i++) {
+            // check each row
             if (sudoku->rows[i][num] == 0) {
                 int potential = -1;
                 for (int j = 0; j < 9; j++) {
@@ -115,6 +121,7 @@ int remaining(struct Sudoku *sudoku) {
                 if (!add(sudoku, i, potential, num + 1)) return 0;
             }
             
+            // check each column
             if (sudoku->cols[i][num] == 0) {
                 int potential = -1;
                 for (int j = 0; j < 9; j++) {
@@ -131,6 +138,7 @@ int remaining(struct Sudoku *sudoku) {
                 if (!add(sudoku, potential, i, num + 1)) return 0;
             }
 
+            // check each box
             if (sudoku->boxes[i][num] == 0) {
                 int potential = -1;
                 for (int j = 0; j < 9; j++) {
@@ -152,4 +160,55 @@ int remaining(struct Sudoku *sudoku) {
     }
 
     return 1;
+}
+
+
+// check if puzzle is solved
+int solved(struct Sudoku *sudoku) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (sudoku->rows[i][j] == 0) return 0;
+            if (sudoku->cols[i][j] == 0) return 0;
+            if (sudoku->boxes[i][j] == 0) return 0;
+        }
+    }
+
+    return 1;
+}
+
+
+// brute force for the answer
+int bruteForce(struct Sudoku *sudoku, int r, int c) {
+    // iterate till end of cells
+    for (int a = 9 * r + c; a < 81; a++) {
+        int i = a / 9, j = a % 9;
+
+        //look for empty cell
+        if (sudoku->grid[i][j]) continue;
+        
+        // try to find a number to put in cell
+        for (int num = 0; num < 9; num++) {
+            if (sudoku->rows[i][num] || sudoku->cols[j][num] || sudoku->boxes[3 * (i / 3) + (j / 3)][num]) continue;
+            if (sudoku->potentials[i][j][num] == 0) continue;
+
+            sudoku->grid[i][j] = num + 1;       // set num
+            // update remaining values
+            sudoku->rows[i][num] = 1;
+            sudoku->cols[j][num] = 1;
+            sudoku->boxes[3 * (i / 3) + (j / 3)][num] = 1;
+
+            // recurse for the rest of the puzzle
+            if (bruteForce(sudoku, (j < 8) ? i : i + 1, (j + 1) % 9)) return 1;
+
+            // reset changes
+            sudoku->grid[i][j] = 0;
+            sudoku->rows[i][num] = 0;
+            sudoku->cols[j][num] = 0;
+            sudoku->boxes[3 * (i / 3) + (j / 3)][num] = 0;
+        }
+
+        return 0;       // if no number could be put, then puzzle is unsolvable
+    }
+
+    return 1;           // if reached end, then puzzle is solved
 }
