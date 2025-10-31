@@ -15,11 +15,12 @@ struct Sudoku* getSudoku() {
     struct Sudoku *sudoku = (struct Sudoku *) malloc(sizeof(struct Sudoku));
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
+            sudoku->grid[i][j] = 0;
             sudoku->rows[i][j] = 0;
             sudoku->cols[i][j] = 0;
             sudoku->boxes[i][j] = 0;
 
-            for (int k = 0; i < 9; k++) {
+            for (int k = 0; k < 9; k++) {
                 sudoku->potentials[i][j][k] = 1;
             }
         }
@@ -56,10 +57,10 @@ int add(struct Sudoku *sudoku, int i, int j, int val) {
         if (j != k) sudoku->potentials[i][k][val - 1] = 0;
     }
     for (int a = 0; a < 3; a++) {
-        int r = box / 3 + a;
+        int r = 3 * (box / 3) + a;
         for (int b = 0; b < 3; b++) {
-            int c = box % 3 + b;
-            if (r == i && c == b) continue;
+            int c = 3 * (box % 3) + b;
+            if (r == i && c == j) continue;
             sudoku->potentials[r][c][val - 1] = 0;
         }
     }
