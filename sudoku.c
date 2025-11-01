@@ -163,6 +163,226 @@ int remaining(struct Sudoku *sudoku) {
 }
 
 
+// if a number can only be in a single row/col in a box, remove it for that row/col from other boxes
+void removeForBox(struct Sudoku *sudoku) {
+    for (int box = 0; box < 9; box++) {
+        for (int num = 0; num < 9; num++) {
+            if (sudoku->boxes[box][num]) continue;
+
+            int r = 3 * (box / 3), c = 3 * (box % 3);
+
+            int sum = 0;
+            for (int a = 0; a < 2; a++) {
+                for (int b = 0; b < 3; b++) {
+                    if (sudoku->potentials[r + a][c + b][num]) {
+                        sum++;
+                        a = 3;
+                        b = 3;
+                    }
+                }
+            }
+            if (sum == 0) {
+                for (int i = 0; i < c; i++) sudoku->potentials[r + 2][i][num] = 0;
+                for (int i = c + 3; i < 9; i++) sudoku->potentials[r + 2][i][num] = 0;
+            }
+
+            sum = 0;
+            for (int a = 0; a < 3; a += 2) {
+                for (int b = 0; b < 3; b++) {
+                    if (sudoku->potentials[r + a][c + b][num]) {
+                        sum++;
+                        a = 3;
+                        b = 3;
+                    }
+                }
+            }
+            if (sum == 0) {
+                for (int i = 0; i < c; i++) sudoku->potentials[r + 1][i][num] = 0;
+                for (int i = c + 3; i < 9; i++) sudoku->potentials[r + 1][i][num] = 0;
+            }
+
+            sum = 0;
+            for (int a = 1; a < 3; a ++) {
+                for (int b = 0; b < 3; b++) {
+                    if (sudoku->potentials[r + a][c + b][num]) {
+                        sum++;
+                        a = 3;
+                        b = 3;
+                    }
+                }
+            }
+            if (sum == 0) {
+                for (int i = 0; i < c; i++) sudoku->potentials[r][i][num] = 0;
+                for (int i = c + 3; i < 9; i++) sudoku->potentials[r][i][num] = 0;
+            }
+
+            sum = 0;
+            for (int a = 0; a < 3; a++) {
+                for (int b = 0; b < 2; b++) {
+                    if (sudoku->potentials[r + a][c + b][num]) {
+                        sum++;
+                        a = 3;
+                        b = 3;
+                    }
+                }
+            }
+            if (sum == 0) {
+                for (int i = 0; i < r; i++) sudoku->potentials[i][c + 2][num] = 0;
+                for (int i = r + 3; i < 9; i++) sudoku->potentials[i][c + 2][num] = 0;
+            }
+
+            sum = 0;
+            for (int a = 0; a < 3; a++) {
+                for (int b = 0; b < 3; b += 2) {
+                    if (sudoku->potentials[r + a][c + b][num]) {
+                        sum++;
+                        a = 3;
+                        b = 3;
+                    }
+                }
+            }
+            if (sum == 0) {
+                for (int i = 0; i < r; i++) sudoku->potentials[i][c + 1][num] = 0;
+                for (int i = r + 3; i < 9; i++) sudoku->potentials[i][c + 1][num] = 0;
+            }
+
+            sum = 0;
+            for (int a = 0; a < 3; a ++) {
+                for (int b = 1; b < 3; b++) {
+                    if (sudoku->potentials[r + a][c + b][num]) {
+                        sum++;
+                        a = 3;
+                        b = 3;
+                    }
+                }
+            }
+            if (sum == 0) {
+                for (int i = 0; i < r; i++) sudoku->potentials[i][c][num] = 0;
+                for (int i = r + 3; i < 9; i++) sudoku->potentials[i][c][num] = 0;
+            }
+        }
+    }
+}
+
+
+// if a number in a row/col appears in only a single box, remove from other row/col in the box
+void removeFromBox(struct Sudoku *sudoku) {
+    for (int i = 0; i < 9; i++) {
+        for (int num = 0; num < 9; num++) {
+            if (sudoku->rows[i][num]) continue;
+
+            int sum = 0;
+            for (int j = 0; j < 6; j++) {
+                if (sudoku->potentials[i][j][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            if (sum == 0) {
+                int r = 3 * (i / 3);
+                for (int a = 0; a < 3; a++) {
+                    if (r + a == i) continue;
+                    for (int k = 6; k < 9; k++) sudoku->potentials[r + a][k][num] = 0;
+                }
+            }
+
+            sum = 0;
+            for (int j = 0; j < 3; j++) {
+                if (sudoku->potentials[i][j][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            for (int j = 6; j < 9; j++) {
+                if (sudoku->potentials[i][j][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            if (sum == 0) {
+                int r = 3 * (i / 3);
+                for (int a = 0; a < 3; a++) {
+                    if (r + a == i) continue;
+                    for (int k = 3; k < 6; k++) sudoku->potentials[r + a][k][num] = 0;
+                }
+            }
+
+            sum = 0;
+            for (int j = 3; j < 9; j++) {
+                if (sudoku->potentials[i][j][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            if (sum == 0) {
+                int r = 3 * (i / 3);
+                for (int a = 0; a < 3; a++) {
+                    if (r + a == i) continue;
+                    for (int k = 0; k < 3; k++) sudoku->potentials[r + a][k][num] = 0;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < 9; i++) {
+        for (int num = 0; num < 9; num++) {
+            if (sudoku->cols[i][num]) continue;
+
+            int sum = 0;
+            for (int j = 0; j < 6; j++) {
+                if (sudoku->potentials[j][i][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            if (sum == 0) {
+                int c = 3 * (i / 3);
+                for (int a = 0; a < 3; a++) {
+                    if (c + a == i) continue;
+                    for (int k = 6; k < 9; k++) sudoku->potentials[k][c + a][num] = 0;
+                }
+            }
+
+            sum = 0;
+            for (int j = 0; j < 3; j++) {
+                if (sudoku->potentials[j][i][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            for (int j = 6; j < 9; j++) {
+                if (sudoku->potentials[j][i][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            if (sum == 0) {
+                int c = 3 * (i / 3);
+                for (int a = 0; a < 3; a++) {
+                    if (c + a == i) continue;
+                    for (int k = 3; k < 6; k++) sudoku->potentials[k][c + a][num] = 0;
+                }
+            }
+
+            sum = 0;
+            for (int j = 3; j < 9; j++) {
+                if (sudoku->potentials[j][i][num]) {
+                    j = 9;
+                    sum++;
+                }
+            }
+            if (sum == 0) {
+                int c = 3 * (i / 3);
+                for (int a = 0; a < 3; a++) {
+                    if (c + a == i) continue;
+                    for (int k = 0; k < 3; k++) sudoku->potentials[k][c + a][num] = 0;
+                }
+            }
+        }
+    }
+}
+
+
 // check if puzzle is solved
 int solved(struct Sudoku *sudoku) {
     for (int i = 0; i < 9; i++) {
@@ -262,8 +482,19 @@ int main() {
     while (difficulty < 5) {
         difficulty++;
 
-        remaining(sudoku);
-        place(sudoku);
+        if (!remaining(sudoku)) {
+            printf("The given sudoku is invalid");
+            free(sudoku);
+            return 0;
+        };
+        if (!place(sudoku)) {
+            printf("The given sudoku is invalid");
+            free(sudoku);
+            return 0;
+        }
+
+        removeForBox(sudoku);
+        removeFromBox(sudoku);
 
         if (solved(sudoku)) {
             print(sudoku);
