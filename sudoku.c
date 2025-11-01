@@ -437,8 +437,12 @@ int bruteForce(struct Sudoku *sudoku, int r, int c) {
 // print the sudoku
 void print(struct Sudoku *sudoku) {
     for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) printf("%d", sudoku->grid[i][j]);
+        for (int j = 0; j < 9; j++) {
+            printf("%d ", sudoku->grid[i][j]);
+            if (j == 2 || j == 5) printf("| ");
+        }
         printf("\n");
+        if (i == 2 || i == 5) printf("------+-------+------\n");
     }
 }
 
@@ -468,17 +472,19 @@ int main() {
             r++;
         }
     }
-    printf("\n\n");
+    printf("\n\n");    
+
+    int difficulty = 0;
+    const char *difficulties[] = {"Solved", "Very Easy", "Easy", "Medium", "Hard", "Very Hard", "Expert"};
 
     // check if already solved
     if (solved(sudoku)) {
         print(sudoku);
-        printf("\nDifficulty: 0");
+        printf("\nDifficulty: %s", difficulties[difficulty]);
         free(sudoku);
         return 0;
     }
 
-    int difficulty = 0;
     while (difficulty < 5) {
         difficulty++;
 
@@ -498,15 +504,16 @@ int main() {
 
         if (solved(sudoku)) {
             print(sudoku);
-            printf("\nDifficulty: %d", difficulty);
+            printf("\nDifficulty: %s", difficulties[difficulty]);
             free(sudoku);
             return 0;
         }
     }
 
+    difficulty++;
     if (bruteForce(sudoku, 0, 0)) {
         print(sudoku);
-        printf("\nDifficulty: 6");
+        printf("\nDifficulty: %s", difficulties[difficulty]);
     } else {
         printf("The given sudoku is invalid");
     }
