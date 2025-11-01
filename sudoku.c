@@ -437,8 +437,12 @@ int bruteForce(struct Sudoku *sudoku, int r, int c) {
 // print the sudoku
 void print(struct Sudoku *sudoku) {
     for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) printf("%d", sudoku->grid[i][j]);
+        for (int j = 0; j < 9; j++) {
+            printf("%d", sudoku->grid[i][j]);
+            if (j == 2 || j == 5) printf("|");
+        }
         printf("\n");
+        if (i == 2 || i == 5) printf("---+---+---\n");
     }
 }
 
