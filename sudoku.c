@@ -212,3 +212,74 @@ int bruteForce(struct Sudoku *sudoku, int r, int c) {
 
     return 1;           // if reached end, then puzzle is solved
 }
+
+
+// print the sudoku
+void print(struct Sudoku *sudoku) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) printf("%d", sudoku->grid[i][j]);
+        printf("\n");
+    }
+}
+
+
+int main() {
+    printf("Enter your sudoku. Replace empty spaces with 0\n");
+    struct Sudoku *sudoku = getSudoku();            // initialize empty sudoku
+
+    // get input from user
+    int r = 0, c = 0;
+    char temp;
+    while (r < 9) {
+        scanf("%c", &temp);
+        if (temp < '0' || temp > '9') continue;
+
+        if (temp != '0') {
+            if (!add(sudoku, r, c, temp - '0')) {
+                printf("\n\n The given sudoku is invalid");
+                free(sudoku);
+                return 0;
+            }
+        }
+
+        c++;
+        if (c == 9) {
+            c = 0;
+            r++;
+        }
+    }
+    printf("\n\n");
+
+    // check if already solved
+    if (solved(sudoku)) {
+        print(sudoku);
+        printf("\nDifficulty: 0");
+        free(sudoku);
+        return 0;
+    }
+
+    int difficulty = 0;
+    while (difficulty < 5) {
+        difficulty++;
+
+        remaining(sudoku);
+        place(sudoku);
+
+        if (solved(sudoku)) {
+            print(sudoku);
+            printf("\nDifficulty: %d", difficulty);
+            free(sudoku);
+            return 0;
+        }
+    }
+
+    if (bruteForce(sudoku, 0, 0)) {
+        print(sudoku);
+        printf("\nDifficulty: 6");
+    } else {
+        printf("The given sudoku is invalid");
+    }
+
+    free(sudoku);
+    return 0;
+}
